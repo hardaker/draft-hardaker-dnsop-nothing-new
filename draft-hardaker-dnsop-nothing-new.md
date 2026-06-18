@@ -1,9 +1,9 @@
 ---
 ###
 title: "Support for nothing-new notifications in the DNS"
-abbrev: "Nothing-new in the DNS""
+abbrev: "Nothing-new in the DNS"
 category: std
-docname: draft-hardaker-dnsop-nothing-new
+docname: draft-hardaker-dnsop-nothing-new-latest
 submissiontype: IETF
 consensus: true
 v: 3
@@ -73,7 +73,7 @@ and server.  These optimizations include:
 - A new Nothing New (NN) DNS flag that indicates the requested records
   have not been changed recently, and thus cached data is sufficient
   fro use.  See {{NN}} for details.
-  
+
 - A LARGE resource record that both can serve as a hint about what
   version of a record is current and how resolvers can query for the
   entire record using either TCP or multiple UDP requests {{LARGE}}.
@@ -87,6 +87,8 @@ The trustability of these unsigned signals is discussed in {{trustability}}.
 # The Nothing New flag {#NN}
 
 # The LARGE Resource Record {#LARGE}
+
+# Trustability {#trustability}
 
 # Security Considerations {#security}
 
