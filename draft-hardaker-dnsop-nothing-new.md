@@ -27,6 +27,7 @@ author:
 
 normative:
   RFC1035:
+  RFC6891: # EDNS0
 
 informative:
   BCP237:  # DNSSEC
@@ -46,6 +47,11 @@ DNSSEC DNSKEY and RRSIG records.
 --- middle
 
 # Introduction
+
+(Ed: this is very much a work in progress and is not a fully specified
+specification at this point, and as such is not implementable.  It is
+designed to promote thought and discussion about how to handle large
+requests within the DNS using new mechanisms.)
 
 The DNS protocol has increasingly needed to carry larger records than
 it was originally designed to carry.  This has resulted in performance
@@ -78,7 +84,17 @@ and server.  These optimizations include:
   version of a record is current and how resolvers can query for the
   entire record using either TCP or multiple UDP requests {{LARGE}}.
 
-The trustability of these unsigned signals is discussed in {{trustability}}.
+The trustability of these unsigned signals is discussed in
+{{trustability}}.
+
+The goal of these new features is to reduce the number of large
+responses necessary when communicating with conforming resolver
+clients.  Effectively, these mechanisms allow for signaling both:
+
+1. If you have data in your cache, you may keep using it, assuming the
+   cached DNSSEC signatures are still valid.
+2. A serial number of the data requested to check against your cache,
+   in case it actually has changed.
 
 # Conventions and Definitions {#definitions}
 
@@ -86,9 +102,75 @@ The trustability of these unsigned signals is discussed in {{trustability}}.
 
 # The Nothing New flag {#NN}
 
+In short, the NN flag in the DNS Header Flags is a signal that can be
+sent along with the Truncated Response (TC) flag to indicate both that
+data truncation has occurred to comply with packet size limits
+{{RFC6891}} and that any data with a still valid signature validity
+may be continued to use instead of refetching the data.
+
+This flag SHOULD be accompanied with a LARGE ({{LARGE}}) Resource
+Record as well.  If the DNSSEC signature on the LARGE RR can fit
+within the response, it MUST be included.  If the DNSSEC signature
+on the LARGE RR cannot fit within the response, the LARGE RR SHOULD be
+sent without it.
+
 # The LARGE Resource Record {#LARGE}
 
+The LARGE RR is a hint to the resolver about how to fetch the larger
+record.  It includes mechanisms for where and how to fetch the data
+over both UDP and TCP and hints about whether fetching the data is
+even necessary.
+
+The RR contains the following fields:
+
+- IDENTIFIER: A 16-bit serial number field that must be unique within the
+  signature lifetime of the data it represents.  Resolvers can use
+  this information to determine if the record they have available
+  matches the value not sent by the upstream server.  (more details
+  later)
+
+- TCP_TYPE: The 16-bit Resource Record type that can used for fetching the full
+  contents over TCP.  Generally this will be the same Resource Record
+  type that the LARGE record is covering, with some rare exceptions.
+
+- UDP_TYPE: The 16-bit starting Resource Record type for fetching parts of the larger
+  record by requesting individual pieces of the record over UDP
+  instead.
+  
+- UDP_COUNT: An 8-bit field specifying the number of UDP Resource
+  Records, starting with the UDP_TYPE RR, to fetch and concatinated
+  when retrieving the larger value.
+
+## Selecting serial numbers
+
+The SOA serial number SHOULD NOT be used as LARGE record serial
+numbers unless it is expected that all records in a zone are likely to
+change at the same time the SOA is ever changed.  EG, highly dynamic
+zones will have their SOA changing so frequently that it is pointless
+to use them to indicate changes relating to otherwise fairly static
+records, like DNSKEYs.
+
+## Alternative LARGE format
+
+Could be a TXT style record with the more modern key=value syntax, at
+the cost of a size increase.
+
+## Alternative LARGE record placement
+
+This could be done with something like a _large.example.com record
+instead._
+
+## Could drop the UDP support
+
+The UDP support is sort of a hack, but could be useful.  Or dropped.
+
 # Trustability {#trustability}
+
+# Use with DNSSEC {#DNSSEC}
+
+The use of these techniques within DNSSEC is especially tricky even
+while other uses may be more straight forward, as RRSIG records
+themselves are frequently large but are needed to validate the data.
 
 # Security Considerations {#security}
 
@@ -98,6 +180,8 @@ The trustability of these unsigned signals is discussed in {{trustability}}.
 
 # Acknowledgments
 {:numbered="false"}
+
+The bad-idea fairy contributed greatly to the ideas behind this document.
 
 TBD
 
