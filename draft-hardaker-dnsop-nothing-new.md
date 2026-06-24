@@ -31,6 +31,7 @@ normative:
 
 informative:
   BCP237:  # DNSSEC
+  RFC8767: # serve stale
 
 --- abstract
 
@@ -85,7 +86,7 @@ and server.  These optimizations include:
   entire record using either TCP or multiple UDP requests {{LARGE}}.
 
 The trustability of these unsigned signals is discussed in
-{{trustability}}.
+{{security}}.
 
 The goal of these new features is to reduce the number of large
 responses necessary when communicating with conforming resolver
@@ -135,8 +136,9 @@ The RR contains the following fields:
 
 - UDP_TYPE: The 16-bit starting Resource Record type for fetching parts of the larger
   record by requesting individual pieces of the record over UDP
-  instead.
-  
+  instead.  A UDP_TYPE field of zero indicates there is no RR type where multiple segments
+  can be downloaded.
+
 - UDP_COUNT: An 8-bit field specifying the number of UDP Resource
   Records, starting with the UDP_TYPE RR, to fetch and concatinated
   when retrieving the larger value.
@@ -157,14 +159,12 @@ the cost of a size increase.
 
 ## Alternative LARGE record placement
 
-This could be done with something like a _large.example.com record
-instead._
+This could be done with an underbar label instead, with something like
+a _large.example.com record instead.
 
-## Could drop the UDP support
+## The UDP support may or may not be desired
 
 The UDP support is sort of a hack, but could be useful.  Or dropped.
-
-# Trustability {#trustability}
 
 # Use with DNSSEC {#DNSSEC}
 
@@ -174,7 +174,20 @@ themselves are frequently large but are needed to validate the data.
 
 # Security Considerations {#security}
 
+Obviously, using unsigned data to decide whether or not to retrieve
+signed data is a security concern. Having said that, there are already
+other specifications that show how to use unsigned data when the
+parental server cannot be contacted ({{RFC8767}}).
+
+This document merely provides a specification for the parental agent
+to deliberately say "nothing new". And thus, if there is a machine in
+the middle spoofing this signal, there is already a machine in the
+middle that can cause a child to use stale data by simply dropping packets.
+At most, clients will end up using old data, which is already the case.
+
 # IANA Considerations
+
+TBD
 
 --- back
 
