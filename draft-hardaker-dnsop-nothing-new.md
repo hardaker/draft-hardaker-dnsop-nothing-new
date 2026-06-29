@@ -54,43 +54,67 @@ specification at this point, and as such is not implementable.  It is
 designed to promote thought and discussion about how to handle large
 requests within the DNS using new mechanisms.)
 
+## Background
+
 The DNS protocol has increasingly needed to carry larger records than
 it was originally designed to carry.  This has resulted in performance
 impacts due to both the size increases and requiring TCP instead of
 only UDP.  Of particular note is the expected large increase in
-records relating to post-quantum signing algorithms.  To help
-mitigate, but not entirely prevent, these impacts, this document
-proposes a new "nothing new" NN flag, a LARGE Redirection Resource
-record type, and how these can integrate with current and future
-DNSSEC DNSKEY and RRSIG records.
+records relating to Post-Quantum-Computing (PQC) signing algorithms.
+Note that while this draft concentrates on PQC algorithms, the
+techniques proposed should help mitigate other large packet size
+issues with any types of DNS data.
 
-Recent research into the impacts of Post Quantum Cryptography (PQC)
-sized keys being introduce into DNSSEC has shown that every
-potential algorithm poses significant impacts into signing,
-verification and potential packet sizes.  The resulting expectation is
-that a significant increase in requiring TCP for both DNSKEY record
-retrieval and even any record retrieval, as the signature sizes alone
-will be significantly larger than easily distributable over UDP.
+With the increase in size requirements being transmitted over DNS, we
+have but a few options to address the need for large RRsets and/or
+mitigate the burden on authoritative servers. These are at least some
+of the options available:
 
-This document proposes a number of new mechanisms for signaling that
-resource records have not changed, and thus do not need to be
-refetched, potentially saving significant resources on both the client
-and server.  These optimizations include:
+1. Encourage the switch to TCP for most requests, especially those
+   performing DNSSEC queries.
+   
+2. Investigate and deploy DNSSEC signing algorithms and deploy that
+   minimize the packet size impacts. We have already done this, to
+   some extent, with the shift to elliptic curve algorithms in
+   DNSSEC. But regardless of the choice of PQC algorithms, they will
+   be significantly larger even if we standardize the smallest of the
+   algorithms with the smallest packet sizes.
+   
+3. Reduce the need for sending large datagrams in the first
+   place. This can be done with a few of techniques, the most obvious
+   of which is to increase TTL values.
+   
+This draft explores an additional mechanism for reducing the quantity
+of large packets needed to be sent. It does this by indicating that no
+changes have been made to DNS records, which would otherwise be large
+and a burden to transmit frequently.
+
+## Technique Overview
+
+This document proposes a new "nothing new" NN flag, a LARGE
+Redirection Resource record type, and describes how these can
+integrate with current and future DNSSEC DNSKEY and RRSIG records.
+
+This document proposes two new mechanisms for signaling that resource
+records have not changed, and thus do not need to be refetched.  This
+potentially saves significant resources on both the client and server.
+These optimizations include:
 
 - A new Nothing New (NN) DNS flag that indicates the requested records
   have not been changed recently, and thus cached data is sufficient
   fro use.  See {{NN}} for details.
 
-- A LARGE resource record that both can serve as a hint about what
-  version of a record is current and how resolvers can query for the
-  entire record using either TCP or multiple UDP requests {{LARGE}}.
+- A LARGE resource record ({{LARGE}}) that serves as a hint about what
+  version of a record is current and whether or not a client needs to
+  refetch its contents.
 
 The trustability of these unsigned signals is discussed in
 {{security}}.
 
-The goal of these new features is to reduce the number of large
-responses necessary when communicating with conforming resolver
-clients.  Effectively, these mechanisms allow for signaling both:
+The simple goal of these new features is to reduce the necessary
+number of large responses from authoritative servers when
+communicating with conforming resolver clients.  Effectively, these
+mechanisms allow for signaling both:
 
 1. If you have data in your cache, you may keep using it, assuming the
    cached DNSSEC signatures are still valid.
