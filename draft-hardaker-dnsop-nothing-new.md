@@ -70,24 +70,27 @@ have but a few options to address the need for large RRsets and/or
 mitigate the burden on authoritative servers. These are at least some
 of the options available:
 
-1. Encourage the switch to TCP for most requests, especially those
-   performing DNSSEC queries.
+1. Encourage the switch to TCP for requests which are known to
+   generate large responses. Especially those performing DNSSEC (DO
+   bit) queries.
    
 2. Investigate and deploy DNSSEC signing algorithms and deploy that
-   minimize the packet size impacts. We have already done this, to
-   some extent, with the shift to elliptic curve algorithms in
-   DNSSEC. But regardless of the choice of PQC algorithms, they will
-   be significantly larger even if we standardize the smallest of the
-   algorithms with the smallest packet sizes.
+   minimize the packet size impacts. We have already done this
+   recently, to some extent, with the shift to elliptic curve based
+   algorithms in DNSSEC
    
-3. Reduce the need for sending large datagrams in the first
-   place. This can be done with a few of techniques, the most obvious
-   of which is to increase TTL values.
+   But PQC algorithms will be significantly larger, even if we
+   standardize on an algorithms with the smallest key and signature
+   sizes.
    
-This draft explores an additional mechanism for reducing the quantity
-of large packets needed to be sent. It does this by indicating that no
-changes have been made to DNS records, which would otherwise be large
-and a burden to transmit frequently.
+3. Reduce the need for sending large responses in the first place. The
+   most obvious solution to this is to increase TTL values.  However,
+   that is not always possible.
+   
+This draft explores an additional mechanism to solve #3 by further
+reducing the quantity of large packets needed to be sent. It does this
+by indicating that no changes have been made to DNS records, which
+would otherwise be large and a burden to transmit frequently.
 
 ## Technique Overview
 
@@ -95,14 +98,15 @@ This document proposes a new "nothing new" NN flag, a LARGE
 Redirection Resource record type, and describes how these can
 integrate with current and future DNSSEC DNSKEY and RRSIG records.
 
-This document proposes two new mechanisms for signaling that resource
-records have not changed, and thus do not need to be refetched.  This
-potentially saves significant resources on both the client and server.
-These optimizations include:
+This document proposes two technical mechanisms for signaling that
+resource records have not changed since a previously obtained set, and
+thus do not need to be re-fetched.  This potentially saves significant
+resources on both the client and server.  These optimizations include:
 
-- A new Nothing New (NN) DNS flag that indicates the requested records
-  have not been changed recently, and thus cached data is sufficient
-  fro use.  See {{NN}} for details.
+- A new Nothing New (NN) DNS bit, to be used in conjunction with the
+  Truncated (TC) bit that indicates the requested records have not
+  been changed recently, and thus cached data is sufficient fro use.
+  See {{NN}} for details.
 
 - A LARGE resource record ({{LARGE}}) that serves as a hint about what
   version of a record is current and whether or not a client needs to
@@ -119,8 +123,9 @@ mechanisms allow for signaling both:
 1. If a recursive resolver has data in its cache, it may keep using it
    (assuming the cached DNSSEC signatures are still valid if it is
    validating).
-2. A version number of the data requested to check against your cache,
-   in case it actually has changed.
+2. A version number of the data requested to check against a
+   resolver's cache, providing a hint about whether the data in a
+   resolvers cache is actually old or the same.
 
 # Conventions and Definitions {#definitions}
 
