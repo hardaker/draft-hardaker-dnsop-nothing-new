@@ -104,9 +104,9 @@ thus do not need to be re-fetched.  This potentially saves significant
 resources on both the client and server.  These optimizations include:
 
 - A new Nothing New (NN) DNS bit, to be used in conjunction with the
-  Truncated (TC) bit that indicates the requested records have not
-  been changed recently, and thus cached data is sufficient fro use.
-  See {{NN}} for details.
+  Truncated Response (TC) bit that indicates the requested records
+  have not been changed recently, and thus cached data is sufficient
+  fro use.  See {{NN}} for details.
 
 - A LARGE resource record ({{LARGE}}) that serves as a hint about what
   version of a record is current and whether or not a client needs to
@@ -187,6 +187,10 @@ dynamic zones will have their SOA changing so frequently that it is
 pointless to use them to indicate changes relating to otherwise fairly
 static records, like DNSKEYs.
 
+Note: LARGE records and their serial numbers need only be generated
+and track for records which are expected to generate truncated
+responses. 
+
 ## Discussion: Alternative LARGE formats
 
 Could be a TXT style record with the more modern key=value syntax, at
@@ -204,11 +208,25 @@ Another option is to actually have the resolver send a signal to the
 parent about its cache using an embedded LARGE record within an EDNS0
 packet so that the parent knows whether or not something is new.
 
+Because the NN feature is only expected to be used in a truncated
+response, it does not help the authoritative server know the serial
+number that the client last saw. Specifically, the authoritative
+server will have to return a truncated response (and a LARGE record
+anyway). Thus, instead we place the burden on the resolver to figure
+out whether it needs to request the entire RRset (over TCP) or
+not.
+
 # Use with DNSSEC {#DNSSEC}
 
 The use of these techniques within DNSSEC is especially tricky even
 while other uses may be more straight forward, as RRSIG records
 themselves are frequently large but are needed to validate the data.
+For the average DNSSEC signed zone, it may be that only the DNSSEC
+records need to be tracked with serial numbers.
+
+(TBD: I have ideas about large RRSIGs associated with small records
+that I haven't written here yet -- but PQC RRSIGs are expected to be
+large as well)
 
 # Security Considerations {#security}
 
