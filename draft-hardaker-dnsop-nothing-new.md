@@ -73,20 +73,20 @@ of the options available:
 1. Encourage the switch to TCP for requests which are known to
    generate large responses. Especially those performing DNSSEC (DO
    bit) queries.
-   
+
 2. Investigate and deploy DNSSEC signing algorithms and deploy that
    minimize the packet size impacts. We have already done this
    recently, to some extent, with the shift to elliptic curve based
    algorithms in DNSSEC
-   
+
    But PQC algorithms will be significantly larger, even if we
    standardize on an algorithms with the smallest key and signature
    sizes.
-   
+
 3. Reduce the need for sending large responses in the first place. The
    most obvious solution to this is to increase TTL values.  However,
    that is not always possible.
-   
+
 This draft explores an additional mechanism to solve #3 by further
 reducing the quantity of large packets needed to be sent. It does this
 by indicating that no changes have been made to DNS records, which
@@ -189,7 +189,7 @@ static records, like DNSKEYs.
 
 Note: LARGE records and their serial numbers need only be generated
 and track for records which are expected to generate truncated
-responses. 
+responses.
 
 ## Discussion: Alternative LARGE formats
 
