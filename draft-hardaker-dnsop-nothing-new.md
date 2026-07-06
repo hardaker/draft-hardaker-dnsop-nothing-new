@@ -162,7 +162,7 @@ resolver's cache.
 
 The RR contains the following fields:
 
-- IDENTIFIER: A 16-bit serial number field that must be unique within the
+- IDENTIFIER: A 16-bit identifier number field that must be unique within the
   signature lifetime of the data it represents.  Resolvers can use
   this information to determine if the record they have available
   matches the value not sent by the upstream server.
@@ -170,24 +170,24 @@ The RR contains the following fields:
 The name of this record MUST match the name of the record being
 requested in the query.
 
-## Selecting serial numbers
+## Selecting identifier numbers
 
 The identifier field MUST be selected from a unique set of values that
 will not duplicate during the lifetime of the DNSSEC signatures
 period.  Authoritative servers which auto-generate this field can use
 various forms of mechanisms, such as cryptographic hashes, incremental
-serial numbers, carefully constructed timestamps, fields and values
+identifier numbers, carefully constructed timestamps, fields and values
 from the data that it represents, as long as the uniqueness constraint
 is properly observed.
 
-The SOA serial number of the zone SHOULD NOT be used as LARGE record
-serial numbers unless it is expected that all records in a zone are
+The SOA identifier number of the zone SHOULD NOT be used as LARGE record
+identifier numbers unless it is expected that all records in a zone are
 likely to change at the same time the SOA is ever changed.  EG, highly
 dynamic zones will have their SOA changing so frequently that it is
 pointless to use them to indicate changes relating to otherwise fairly
 static records, like DNSKEYs.
 
-Note: LARGE records and their serial numbers need only be generated
+Note: LARGE records and their identifier numbers need only be generated
 and track for records which are expected to generate truncated
 responses.
 
@@ -209,7 +209,7 @@ parent about its cache using an embedded LARGE record within an EDNS0
 packet so that the parent knows whether or not something is new.
 
 Because the NN feature is only expected to be used in a truncated
-response, it does not help the authoritative server know the serial
+response, it does not help the authoritative server know the identifier
 number that the client last saw. Specifically, the authoritative
 server will have to return a truncated response (and a LARGE record
 anyway). Thus, instead we place the burden on the resolver to figure
@@ -222,7 +222,7 @@ The use of these techniques within DNSSEC is especially tricky even
 while other uses may be more straight forward, as RRSIG records
 themselves are frequently large but are needed to validate the data.
 For the average DNSSEC signed zone, it may be that only the DNSSEC
-records need to be tracked with serial numbers.
+records need to be tracked with identifier numbers.
 
 (TBD: I have ideas about large RRSIGs associated with small records
 that I haven't written here yet -- but PQC RRSIGs are expected to be
