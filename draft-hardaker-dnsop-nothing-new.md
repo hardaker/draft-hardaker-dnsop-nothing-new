@@ -254,8 +254,8 @@ TBD
 
 The bad-idea fairy contributed greatly to the ideas behind this document.
 
-Joe Ably had constructive advice to offer, even though he may not
-actually agree with the bad ideas in this document.
+Joe Ably and Peter Thomassen had constructive advice to offer, even
+though he may not actually agree with the bad ideas in this document.
 
 TBD
 
